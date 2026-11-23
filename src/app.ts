@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import express, { type ErrorRequestHandler } from 'express';
 import { isCalendarDate } from './date';
+import type { OrtschaftenLeseRepository } from './ortschaften/ortschaften-lese-repository';
+import { createOrtschaftenRouter } from './ortschaften/ortschaften-router';
 
 export interface Ortschaft {
   id: string;
@@ -14,12 +16,17 @@ export interface OrtschaftenRepository {
   insert(ortschaft: Ortschaft): Promise<boolean>;
 }
 
-export function createApp(repository: OrtschaftenRepository) {
+export function createApp(repository: OrtschaftenRepository, leseRepository?: OrtschaftenLeseRepository) {
   const app = express();
 
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok', service: 'ms1', uptime: process.uptime(), timestamp: new Date().toISOString() });
   });
+
+  // US2: GET /ortschaften und GET /ortschaften/:id
+  if (leseRepository) {
+    app.use('/ortschaften', createOrtschaftenRouter(leseRepository));
+  }
 
   app.post('/ortschaften', express.json(), async (req, res) => {
     const { name, plz, gruendungsdatum, einwohner } = req.body ?? {};

@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { Pool } from 'pg';
 import { createApp } from './app';
+import { PostgresOrtschaftenLeseRepository } from './ortschaften/ortschaften-lese-repository';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, connectionTimeoutMillis: 5000 });
 
@@ -25,7 +26,7 @@ async function start() {
       );
       return result.rowCount === 1;
     },
-  });
+  }, new PostgresOrtschaftenLeseRepository(pool));
 
   const port = Number(process.env.PORT || 3000);
   app.listen(port, () => console.log(`MS1 hört auf Port ${port}`));
